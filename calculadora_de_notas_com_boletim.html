@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Notas & Boletim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom scrollbar para o painel de boletim */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 p-4 md:p-8 flex flex-col items-center">
+
+    <div class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        
+        <!-- COLUNA 1: Calculadora -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col">
+            <div class="bg-blue-600 p-6 text-center text-white">
+                <h1 class="text-2xl font-bold mb-2">Calculadora da 4ª Unidade</h1>
+                <p class="text-blue-100 text-sm">Descubra quanto precisa para a média 7.0</p>
+            </div>
+
+            <div class="p-6 space-y-5 flex-grow">
+                <div>
+                    <label for="materia" class="block text-sm font-medium text-gray-700 mb-1">
+                        Matéria
+                    </label>
+                    <select id="materia" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-700 bg-white">
+                        <option value="" disabled selected>Selecione a matéria</option>
+                        <option value="Biologia">Biologia</option>
+                        <option value="Ed. Física">Ed. Física</option>
+                        <option value="Filosofia">Filosofia</option>
+                        <option value="Física">Física</option>
+                        <option value="Geografia">Geografia</option>
+                        <option value="História">História</option>
+                        <option value="Inglês">Inglês</option>
+                        <option value="Literatura">Literatura</option>
+                        <option value="Matemática">Matemática</option>
+                        <option value="Português">Português</option>
+                        <option value="Prod. Textual">Prod. Textual</option>
+                        <option value="Química">Química</option>
+                        <option value="Sociologia">Sociologia</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="media-semestre" class="block text-sm font-medium text-gray-700 mb-1">
+                        Média do 1º Semestre
+                    </label>
+                    <input type="text" id="media-semestre" inputmode="decimal" placeholder="Ex: 7,5" 
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400 text-gray-700">
+                    <p class="text-xs text-gray-500 mt-1">Referente à 1ª e 2ª unidades (Peso 2)</p>
+                </div>
+
+                <div>
+                    <label for="nota-3" class="block text-sm font-medium text-gray-700 mb-1">
+                        Nota da 3ª Unidade
+                    </label>
+                    <input type="text" id="nota-3" inputmode="decimal" placeholder="Ex: 6,0" 
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder-gray-400 text-gray-700">
+                </div>
+
+                <button id="btn-calcular" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg active:transform active:scale-[0.98] flex justify-center items-center gap-2">
+                    <span>Calcular e Salvar no Boletim</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- COLUNA 2: Boletim Salvo -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-full min-h-[400px]">
+            <div class="bg-gray-800 p-6 text-center text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Meu Boletim
+                    </h2>
+                </div>
+                <div id="loading-spinner" class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+            </div>
+            
+            <div class="p-4 bg-gray-50 flex-grow custom-scrollbar overflow-y-auto max-h-[500px]" id="boletim-lista">
+                <!-- As matérias salvas aparecerão aqui -->
+                <div class="flex flex-col items-center justify-center h-full text-gray-400 space-y-3 pt-10 pb-10" id="estado-vazio">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <p>Nenhuma matéria calculada ainda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistema de Toast (Avisos) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração injetada pelo ambiente
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'calculadora-notas-app';
+        let firebaseConfig = {};
+        
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                // Fallback fictício caso rode fora do ambiente imersivo (evita quebrar visualmente)
+                apiKey: "demo", authDomain: "demo", projectId: "demo" 
+            };
+        } catch (e) {
+            console.warn("Usando modo offline/demo devido a falta de configuração do Firebase.");
+        }
+
+        let app, db, auth, currentUserId;
+        let isFirebaseActive = false;
+
+        // Elementos da UI
+        const btnCalcular = document.getElementById('btn-calcular');
+        const selectMateria = document.getElementById('materia');
+        const inputMedia = document.getElementById('media-semestre');
+        const inputNota3 = document.getElementById('nota-3');
+        const boletimLista = document.getElementById('boletim-lista');
+        const estadoVazio = document.getElementById('estado-vazio');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = isError ? 'bg-red-500' : 'bg-gray-800';
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-2 pointer-events-auto`;
+            
+            toast.innerHTML = `
+                ${isError 
+                    ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+                    : '<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                }
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animar entrada
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+            
+            // Remover após 3.5s
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        async function initFirebase() {
+            if (firebaseConfig.apiKey === "demo") {
+                loadingSpinner.style.display = 'none';
+                return; // Modo offline
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                currentUserId = auth.currentUser.uid;
+                isFirebaseActive = true;
+                
+                // Iniciar escuta do banco de dados
+                escutarBoletim();
+                
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase:", error);
+                showToast("Erro ao conectar no banco de dados.", true);
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        let unsubscribe = null;
+        function escutarBoletim() {
+            if (!currentUserId || !db) return;
+
+            const gradesRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'boletim');
+            // Nota: Regra MANDATORY é usar query simples. Ordenação será feita no cliente.
+            const q = query(gradesRef);
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                loadingSpinner.style.display = 'none';
+                
+                const notas = [];
+                snapshot.forEach((doc) => {
+                    notas.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Ordenar no cliente (mais recentes primeiro, usando timestamp local se não houver do server)
+                notas.sort((a, b) => {
+                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                renderizarBoletim(notas);
+            }, (error) => {
+                console.error("Erro ao escutar boletim:", error);
+                loadingSpinner.style.display = 'none';
+            });
+        }
+
+        function renderizarBoletim(notas) {
+            if (notas.length === 0) {
+                boletimLista.innerHTML = '';
+                boletimLista.appendChild(estadoVazio);
+                return;
+            }
+
+            boletimLista.innerHTML = '';
+            
+            notas.forEach(nota => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-3 relative overflow-hidden group";
+                
+                // Definir cor baseada na situação
+                let corStatus = 'bg-blue-500';
+                let txtStatus = 'Atenção';
+                if (nota.nota4Necessaria <= 0) {
+                    corStatus = 'bg-green-500';
+                    txtStatus = 'Aprovado';
+                } else if (nota.nota4Necessaria > 10) {
+                    corStatus = 'bg-red-500';
+                    txtStatus = 'Recuperação';
+                }
+
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 w-1.5 h-full ${corStatus}"></div>
+                    <div class="ml-2 flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${nota.materia}</h3>
+                            <div class="text-xs text-gray-500 mt-1 flex gap-3">
+                                <span>1º Sem: <strong class="text-gray-700">${nota.mediaSemestre.toFixed(1).replace('.', ',')}</strong></span>
+                                <span>3ª Uni: <strong class="text-gray-700">${nota.nota3.toFixed(1).replace('.', ',')}</strong></span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <span class="block text-[10px] uppercase font-bold text-gray-400 tracking-wider">Necessária</span>
+                                <span class="text-lg font-black text-gray-800">${nota.nota4Necessaria <= 0 ? 'Já Passou' : nota.nota4Necessaria.toFixed(1).replace('.', ',')}</span>
+                            </div>
+                            <button class="btn-excluir text-gray-300 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50" data-id="${nota.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Evento de exclusão
+                const btnExcluir = card.querySelector('.btn-excluir');
+                btnExcluir.addEventListener('click', () => deletarNota(nota.id));
+
+                boletimLista.appendChild(card);
+            });
+        }
+
+        async function calcularESalvar() {
+            const materia = selectMateria.value;
+            const strMedia = inputMedia.value;
+            const strNota3 = inputNota3.value;
+
+            // Validações
+            if (!materia) {
+                showToast("Por favor, selecione uma matéria.", true);
+                selectMateria.focus();
+                return;
+            }
+            if (!strMedia || !strNota3) {
+                showToast("Preencha as notas do semestre e da 3ª unidade.", true);
+                return;
+            }
+
+            const mediaSem = parseFloat(strMedia.replace(',', '.'));
+            const nota3 = parseFloat(strNota3.replace(',', '.'));
+
+            if (isNaN(mediaSem) || isNaN(nota3)) {
+                showToast("Digite apenas números válidos para as notas.", true);
+                return;
+            }
+
+            // Cálculos
+            // Média Alvo = 7. Fórmula: (N1+N2+N3+N4)/4 = 7 -> (Semestre*2 + N3 + N4) = 28
+            const pontosAcumulados = (mediaSem * 2) + nota3;
+            const nota4 = 28 - pontosAcumulados;
+
+            // Feedback visual na UI
+            btnCalcular.innerHTML = '<span class="animate-pulse">Salvando...</span>';
+            btnCalcular.disabled = true;
+
+            // Salvar no Firestore se estiver ativo
+            if (isFirebaseActive && currentUserId) {
+                try {
+                    const gradesRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'boletim');
+                    await addDoc(gradesRef, {
+                        materia: materia,
+                        mediaSemestre: mediaSem,
+                        nota3: nota3,
+                        nota4Necessaria: nota4,
+                        createdAt: serverTimestamp()
+                    });
+                    
+                    showToast(`${materia} salva no boletim!`);
+                    
+                    // Limpar formulário mantendo o flow
+                    selectMateria.value = "";
+                    inputMedia.value = "";
+                    inputNota3.value = "";
+
+                } catch (error) {
+                    console.error("Erro ao salvar:", error);
+                    showToast("Erro ao salvar a matéria.", true);
+                }
+            } else {
+                showToast("Modo offline: Conexão não estabelecida.", true);
+            }
+
+            // Restaurar botão
+            btnCalcular.innerHTML = `
+                <span>Calcular e Salvar no Boletim</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+            `;
+            btnCalcular.disabled = false;
+        }
+
+        async function deletarNota(docId) {
+            if (!isFirebaseActive || !currentUserId) return;
+            
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'boletim', docId);
+                await deleteDoc(docRef);
+                showToast("Matéria removida do boletim.");
+            } catch (error) {
+                console.error("Erro ao deletar:", error);
+                showToast("Erro ao excluir matéria.", true);
+            }
+        }
+
+        // Configurar Event Listeners
+        btnCalcular.addEventListener('click', calcularESalvar);
+
+        // Inicializar aplicação
+        window.addEventListener('DOMContentLoaded', initFirebase);
+
+    </script>
+</body>
+</html>
