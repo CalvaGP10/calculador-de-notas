@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Notas & Boletim</title>
+    <style>
+        /* Estilos embutidos para funcionar 100% offline */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .panel {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        h1 { color: #2563eb; font-size: 24px; text-align: center; margin-top: 0;}
+        h2 { font-size: 20px; margin-top: 0; display: flex; justify-content: space-between; align-items: center;}
+        .badge { font-size: 12px; background: #e5e7eb; padding: 4px 10px; border-radius: 20px; font-weight: normal;}
+        
+        label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+        input, select {
+            width: 100%; padding: 10px; margin-bottom: 15px;
+            border: 1px solid #ccc; border-radius: 6px;
+            box-sizing: border-box; font-size: 16px;
+        }
+        button {
+            width: 100%; padding: 12px; border: none; border-radius: 6px;
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn-blue { background-color: #2563eb; color: white; }
+        .btn-blue:hover { background-color: #1d4ed8; }
+        .btn-green { background-color: #22c55e; color: white; margin-top: 15px; }
+        .btn-green:hover { background-color: #16a34a; }
+        
+        #resultadoBox {
+            margin-top: 20px; padding: 15px; border-radius: 8px;
+            text-align: center; display: none; border: 2px solid transparent;
+        }
+        .res-aprovado { background-color: #dcfce7; border-color: #86efac; color: #166534; }
+        .res-recuperacao { background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .res-atencao { background-color: #fef9c3; border-color: #fde047; color: #854d0e; }
+        
+        .boletim-lista { max-height: 500px; overflow-y: auto; }
+        .boletim-item {
+            background-color: #f9fafb; border-left: 5px solid #ccc;
+            padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .item-aprovado { border-color: #22c55e; }
+        .item-recuperacao { border-color: #ef4444; }
+        .item-atencao { border-color: #eab308; }
+        
+        .boletim-info h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .boletim-info p { margin: 0; font-size: 14px; color: #555; }
+        
+        .btn-excluir {
+            background: none; border: none; color: #ef4444; font-size: 20px;
+            cursor: pointer; width: auto; padding: 5px 10px;
+        }
+        .btn-excluir:hover { color: #b91c1c; }
+        .empty-msg { text-align: center; color: #9ca3af; font-style: italic; margin-top: 30px;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Lado Esquerdo: Calculadora -->
+        <div class="panel">
+            <h1>Calculadora da 4ª Unidade</h1>
+            
+            <form id="calcForm">
+                <label>Disciplina</label>
+                <select id="materia" required>
+                    <option value="" disabled selected>Selecione a matéria...</option>
+                    <option value="Biologia">Biologia</option>
+                    <option value="Educação Física">Educação Física</option>
+                    <option value="Filosofia">Filosofia</option>
+                    <option value="Física">Física</option>
+                    <option value="Geografia">Geografia</option>
+                    <option value="História">História</option>
+                    <option value="Inglês">Inglês</option>
+                    <option value="Literatura">Literatura</option>
+                    <option value="Português">Português</option>
+                    <option value="Produção Textual">Produção Textual</option>
+                    <option value="Matemática">Matemática</option>
+                    <option value="Química">Química</option>
+                    <option value="Sociologia">Sociologia</option>
+                </select>
+
+                <label>Média do 1º Semestre (Unidades 1 e 2)</label>
+                <input type="text" id="mediaSemestre" placeholder="Ex: 7.5 ou 7,5" required>
+
+                <label>Média da 3ª Unidade</label>
+                <input type="text" id="nota3" placeholder="Ex: 6.0 ou 6,0" required>
+
+                <button type="submit" class="btn-blue">Calcular Nota</button>
+            </form>
+
+            <div id="resultadoBox">
+                <p id="resultadoMateria" style="margin:0 0 5px 0; font-weight:bold; text-transform:uppercase;"></p>
+                <p id="resultadoTexto" style="margin:0; font-size:18px;"></p>
+                
+                <button id="btnSalvar" class="btn-green" style="display:none;">
+                    💾 Salvar no Boletim
+                </button>
+            </div>
+        </div>
+
+        <!-- Lado Direito: Boletim Salvo -->
+        <div class="panel">
+            <h2>Meu Boletim <span class="badge">Salvo no aparelho</span></h2>
+            
+            <div id="listaBoletim" class="boletim-lista">
+                <!-- As matérias salvas aparecerão aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('calcForm');
+        const resultadoBox = document.getElementById('resultadoBox');
+        const resultadoTexto = document.getElementById('resultadoTexto');
+        const resultadoMateria = document.getElementById('resultadoMateria');
+        const btnSalvar = document.getElementById('btnSalvar');
+        const listaBoletim = document.getElementById('listaBoletim');
+
+        let dadosAtuais = null;
+        let boletimLocal = JSON.parse(localStorage.getItem('meuBoletim')) || [];
+
+        // Função para converter vírgula em ponto
+        function formatarNumero(valor) {
+            return parseFloat(valor.replace(',', '.'));
+        }
+
+        // Função para renderizar o boletim na tela
+        function atualizarTelaBoletim() {
+            listaBoletim.innerHTML = '';
+            
+            if (boletimLocal.length === 0) {
+                listaBoletim.innerHTML = '<p class="empty-msg">Nenhuma matéria salva ainda.</p>';
+                return;
+            }
+
+            boletimLocal.forEach((item, index) => {
+                let classeBorda = item.nota4 <= 0 ? 'item-aprovado' : (item.nota4 > 10 ? 'item-recuperacao' : 'item-atencao');
+                let textoNota = item.nota4 > 0 ? item.nota4.toString().replace('.', ',') : 'Já passou';
+                let corTextoNota = item.nota4 > 10 ? 'color: #ef4444;' : 'color: #2563eb;';
+                
+                const card = document.createElement('div');
+                card.className = `boletim-item ${classeBorda}`;
+                card.innerHTML = `
+                    <div class="boletim-info">
+                        <h3>${item.materia}</h3>
+                        <p>Semestre 1: <b>${item.semestre.toString().replace('.', ',')}</b> | 3ª Und: <b>${item.nota3.toString().replace('.', ',')}</b></p>
+                        <p style="margin-top:5px;">Precisa na 4ª: <strong style="${corTextoNota}">${textoNota}</strong></p>
+                    </div>
+                    <button onclick="deletarMateria(${index})" class="btn-excluir" title="Excluir">🗑️</button>
+                `;
+                listaBoletim.appendChild(card);
+            });
+        }
+
+        // Deletar item do localStorage
+        window.deletarMateria = function(index) {
+            boletimLocal.splice(index, 1);
+            localStorage.setItem('meuBoletim', JSON.stringify(boletimLocal));
+            atualizarTelaBoletim();
+        }
+
+        // Cálculo da nota
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const materia = document.getElementById('materia').value;
+            const valSemestre = document.getElementById('mediaSemestre').value;
+            const valNota3 = document.getElementById('nota3').value;
+
+            const mediaSem = formatarNumero(valSemestre);
+            const nota3 = formatarNumero(valNota3);
+
+            if (isNaN(mediaSem) || isNaN(nota3)) {
+                alert("Por favor, digite apenas números válidos.");
+                return;
+            }
+
+            const media_alvo = 7;
+            const pontos_totais = media_alvo * 4;
+            const pontos_acumulados = (mediaSem * 2) + nota3;
+            let nota4 = pontos_totais - pontos_acumulados;
+            
+            // Arredonda para 1 casa decimal
+            nota4 = Math.round(nota4 * 10) / 10;
+
+            resultadoBox.style.display = 'block';
+            resultadoBox.className = ''; // limpa classes
+            resultadoMateria.textContent = materia;
+
+            if (nota4 <= 0) {
+                resultadoBox.classList.add('res-aprovado');
+                resultadoTexto.innerHTML = `<strong>Aprovado!</strong><br>Você já tem pontos suficientes.`;
+            } else if (nota4 > 10) {
+                resultadoBox.classList.add('res-recuperacao');
+                resultadoTexto.innerHTML = `Situação difícil!<br>Você precisa de <strong>${nota4.toString().replace('.', ',')}</strong>.`;
+            } else {
+                resultadoBox.classList.add('res-atencao');
+                resultadoTexto.innerHTML = `Você precisa tirar <strong>${nota4.toString().replace('.', ',')}</strong> na 4ª unidade.`;
+            }
+
+            btnSalvar.style.display = 'block';
+
+            // Guarda os dados
+            dadosAtuais = {
+                materia: materia,
+                semestre: mediaSem,
+                nota3: nota3,
+                nota4: nota4
+            };
+        });
+
+        // Salvar no localStorage
+        btnSalvar.addEventListener('click', function() {
+            if(dadosAtuais) {
+                const indexExistente = boletimLocal.findIndex(item => item.materia === dadosAtuais.materia);
+                
+                if(indexExistente >= 0) {
+                    boletimLocal[indexExistente] = dadosAtuais;
+                } else {
+                    boletimLocal.push(dadosAtuais);
+                }
+
+                localStorage.setItem('meuBoletim', JSON.stringify(boletimLocal));
+                atualizarTelaBoletim();
+                
+                btnSalvar.innerHTML = '✔️ Salvo com sucesso!';
+                
+                setTimeout(() => {
+                    btnSalvar.innerHTML = '💾 Salvar no Boletim';
+                }, 2000);
+            }
+        });
+
+        // Carrega o boletim ao abrir a página
+        atualizarTelaBoletim();
+
+    </script>
+</body>
+</html>
