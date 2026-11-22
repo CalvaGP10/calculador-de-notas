@@ -108,6 +108,10 @@
                 <label>Média da 3ª Unidade</label>
                 <input type="text" id="nota3" placeholder="Ex: 6.0 ou 6,0" required>
 
+                <label>Nota da AV1 da 4ª Unidade <span style="font-weight:normal; color:#6b7280;">(opcional)</span></label>
+                <input type="text" id="av1" placeholder="Ex: 6.5 ou 6,5">
+                <p style="margin:-10px 0 15px 0; font-size:12px; color:#6b7280;">Média da 4ª unidade = (AV1 + AV2) ÷ 2</p>
+
                 <button type="submit" class="btn-blue">Calcular Nota</button>
             </form>
 
@@ -147,6 +151,15 @@
             return parseFloat(valor.replace(',', '.'));
         }
 
+        function fmt(n) {
+            return n.toString().replace('.', ',');
+        }
+
+        // Nota que define a situação: AV2 (se a AV1 foi informada) ou a média da 4ª unidade
+        function notaAlvo(item) {
+            return (item.av2 !== undefined && item.av2 !== null) ? item.av2 : item.nota4;
+        }
+
         // Função para renderizar o boletim na tela
         function atualizarTelaBoletim() {
             listaBoletim.innerHTML = '';
@@ -157,17 +170,26 @@
             }
 
             boletimLocal.forEach((item, index) => {
-                let classeBorda = item.nota4 <= 0 ? 'item-aprovado' : (item.nota4 > 10 ? 'item-recuperacao' : 'item-atencao');
-                let textoNota = item.nota4 > 0 ? item.nota4.toString().replace('.', ',') : 'Já passou';
+                const alvo = notaAlvo(item);
+                const temAv1 = item.av2 !== undefined && item.av2 !== null;
+                let classeBorda = alvo <= 0 ? 'item-aprovado' : (alvo > 10 ? 'item-recuperacao' : 'item-atencao');
+                let textoNota = item.nota4 > 0 ? fmt(item.nota4) : 'Já passou';
                 let corTextoNota = item.nota4 > 10 ? 'color: #ef4444;' : 'color: #2563eb;';
+                let linhaAv = '';
+                if (temAv1) {
+                    let textoAv2 = item.av2 > 0 ? fmt(item.av2) : 'Já passou';
+                    let corAv2 = item.av2 > 10 ? 'color: #ef4444;' : 'color: #2563eb;';
+                    linhaAv = `<p style="margin-top:5px;">AV1: <b>${fmt(item.av1)}</b> | Precisa na AV2: <strong style="${corAv2}">${textoAv2}</strong></p>`;
+                }
                 
                 const card = document.createElement('div');
                 card.className = `boletim-item ${classeBorda}`;
                 card.innerHTML = `
                     <div class="boletim-info">
                         <h3>${item.materia}</h3>
-                        <p>Semestre 1: <b>${item.semestre.toString().replace('.', ',')}</b> | 3ª Und: <b>${item.nota3.toString().replace('.', ',')}</b></p>
-                        <p style="margin-top:5px;">Precisa na 4ª: <strong style="${corTextoNota}">${textoNota}</strong></p>
+                        <p>Semestre 1: <b>${fmt(item.semestre)}</b> | 3ª Und: <b>${fmt(item.nota3)}</b></p>
+                        <p style="margin-top:5px;">Precisa de média na 4ª: <strong style="${corTextoNota}">${textoNota}</strong></p>
+                        ${linhaAv}
                     </div>
                     <button onclick="deletarMateria(${index})" class="btn-excluir" title="Excluir">🗑️</button>
                 `;
@@ -189,6 +211,7 @@
             const materia = document.getElementById('materia').value;
             const valSemestre = document.getElementById('mediaSemestre').value;
             const valNota3 = document.getElementById('nota3').value;
+            const valAv1 = document.getElementById('av1').value.trim();
 
             const mediaSem = formatarNumero(valSemestre);
             const nota3 = formatarNumero(valNota3);
@@ -196,6 +219,15 @@
             if (isNaN(mediaSem) || isNaN(nota3)) {
                 alert("Por favor, digite apenas números válidos.");
                 return;
+            }
+
+            let av1 = null;
+            if (valAv1 !== '') {
+                av1 = formatarNumero(valAv1);
+                if (isNaN(av1) || av1 < 0 || av1 > 10) {
+                    alert("A nota da AV1 deve ser um número entre 0 e 10.");
+                    return;
+                }
             }
 
             const media_alvo = 7;
@@ -206,19 +238,37 @@
             // Arredonda para 1 casa decimal
             nota4 = Math.round(nota4 * 10) / 10;
 
+            // Se a AV1 foi informada: média 4ª = (AV1 + AV2) / 2  =>  AV2 = 2 * média 4ª - AV1
+            let av2 = null;
+            if (av1 !== null) {
+                av2 = Math.round((2 * (pontos_totais - pontos_acumulados) - av1) * 10) / 10;
+            }
+
             resultadoBox.style.display = 'block';
             resultadoBox.className = ''; // limpa classes
             resultadoMateria.textContent = materia;
 
-            if (nota4 <= 0) {
+            if (av2 !== null) {
+                const info = `<br><span style="font-size:14px;">Média necessária na 4ª unidade: <b>${nota4 > 0 ? fmt(nota4) : '0'}</b> | AV1: <b>${fmt(av1)}</b></span>`;
+                if (av2 <= 0) {
+                    resultadoBox.classList.add('res-aprovado');
+                    resultadoTexto.innerHTML = `<strong>Aprovado!</strong><br>Com a AV1 você já tem pontos suficientes.` + info;
+                } else if (av2 > 10) {
+                    resultadoBox.classList.add('res-recuperacao');
+                    resultadoTexto.innerHTML = `Situação difícil!<br>Você precisaria de <strong>${fmt(av2)}</strong> na AV2.` + info;
+                } else {
+                    resultadoBox.classList.add('res-atencao');
+                    resultadoTexto.innerHTML = `Você precisa tirar <strong>${fmt(av2)}</strong> na AV2 para passar de ano.` + info;
+                }
+            } else if (nota4 <= 0) {
                 resultadoBox.classList.add('res-aprovado');
                 resultadoTexto.innerHTML = `<strong>Aprovado!</strong><br>Você já tem pontos suficientes.`;
             } else if (nota4 > 10) {
                 resultadoBox.classList.add('res-recuperacao');
-                resultadoTexto.innerHTML = `Situação difícil!<br>Você precisa de <strong>${nota4.toString().replace('.', ',')}</strong>.`;
+                resultadoTexto.innerHTML = `Situação difícil!<br>Você precisa de <strong>${fmt(nota4)}</strong>.`;
             } else {
                 resultadoBox.classList.add('res-atencao');
-                resultadoTexto.innerHTML = `Você precisa tirar <strong>${nota4.toString().replace('.', ',')}</strong> na 4ª unidade.`;
+                resultadoTexto.innerHTML = `Você precisa tirar <strong>${fmt(nota4)}</strong> na 4ª unidade.`;
             }
 
             btnSalvar.style.display = 'block';
@@ -228,7 +278,9 @@
                 materia: materia,
                 semestre: mediaSem,
                 nota3: nota3,
-                nota4: nota4
+                nota4: nota4,
+                av1: av1,
+                av2: av2
             };
         });
 
