@@ -151,6 +151,11 @@
             return parseFloat(valor.replace(',', '.'));
         }
 
+        // Arredonda para cima em 1 casa decimal (a margem ignora erros de ponto flutuante, ex.: 9.500000001)
+        function arredondarParaCima(n) {
+            return Math.ceil(Math.round(n * 1e6) / 1e5) / 10;
+        }
+
         function fmt(n) {
             return n.toString().replace('.', ',');
         }
@@ -235,13 +240,13 @@
             const pontos_acumulados = (mediaSem * 2) + nota3;
             let nota4 = pontos_totais - pontos_acumulados;
             
-            // Arredonda para 1 casa decimal
-            nota4 = Math.round(nota4 * 10) / 10;
+            // Arredonda PARA CIMA em 1 casa decimal (arredondar para baixo daria uma nota insuficiente)
+            nota4 = arredondarParaCima(nota4);
 
             // Se a AV1 foi informada: média 4ª = (AV1 + AV2) / 2  =>  AV2 = 2 * média 4ª - AV1
             let av2 = null;
             if (av1 !== null) {
-                av2 = Math.round((2 * (pontos_totais - pontos_acumulados) - av1) * 10) / 10;
+                av2 = arredondarParaCima(2 * (pontos_totais - pontos_acumulados) - av1);
             }
 
             resultadoBox.style.display = 'block';
